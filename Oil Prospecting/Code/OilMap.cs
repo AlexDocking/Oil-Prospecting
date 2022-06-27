@@ -16,6 +16,17 @@ namespace OilProspecting
         public static WorldLayer OilfieldWorldLayer { get => WorldLayerManager.Obj.GetLayer("Oilfield"); }
         public static readonly string DataFileFolder = "Mods/UserCode/Oil Prospecting";
         public static readonly string DataFileName = "Oil Layer Values.json";
+        private static string DataFileRelativeLocation
+        {
+            get
+            {
+                return Path.Combine(DataFileFolder, DataFileName);
+            }
+        }
+        /// <summary>
+        /// Writes the oilfield data to file and sets the in-game oil to zero everywhere
+        /// </summary>
+        /// <param name="user">The user who issued the command, to send error/success messages to</param>
         public static void HideOilLayer(User user)
         {
             if (OilfieldWorldLayer == null)
@@ -23,16 +34,24 @@ namespace OilProspecting
                 user.MsgLocStr("This command is broken as the oil layer name has changed");
                 return;
             }
+            if (OilValuesFileExists())
+            {
+                user.MsgLocStr("There is already a saved oilfield file. Using the command would overwrite this file. If you are sure you want to do this remove the file at " + DataFileRelativeLocation + " and try again");
+                return;
+            }
             WriteOilLayerValuesToFile();
             WipeOilLayer();
-            user.MsgLocStr("Hid oil values. Keep the file " + Path.Combine(DataFileFolder, DataFileName) + " safe because you will need it to put the values back in the game");
+            user.MsgLocStr("Hid oil values. Keep the file " + DataFileRelativeLocation + " safe because you will need it to put the values back in the game");
         }
-
+        /// <summary>
+        /// Read the oil data from the file and write it back to the game
+        /// </summary>
+        /// <param name="user">The user who issued the command, to send error/success messages to</param>
         public static void ShowOilLayer(User user)
         {
-            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), DataFileFolder, DataFileName)))
+            if (!OilValuesFileExists())
             {
-                user.MsgLocStr("Couldn't find the data file at " + Path.Combine(DataFileFolder, DataFileName) + ". Have you used <b>/hideoillayer</b> to save the oil layer data?");
+                user.MsgLocStr("Couldn't find the data file at " + Path.Combine(DataFileFolder, DataFileName) + "\nHave you used <b>/hideoillayer</b> to save the original oil layer data?");
                 return;
             }
             OilLayerValues oilLayerValues;
@@ -42,7 +61,7 @@ namespace OilProspecting
             }
             catch
             {
-                user.MsgLocStr("Couldn't read " + Path.Combine(DataFileFolder, DataFileName) + ". Most likely it is in the wrong format");
+                user.MsgLocStr("Couldn't read " + DataFileRelativeLocation + "\nMost likely it is in the wrong format");
                 return;
             }
 
@@ -57,6 +76,10 @@ namespace OilProspecting
             }
             OilfieldWorldLayer.DoTick();
             user.MsgLocStr("Restored oil values");
+        }
+        private static bool OilValuesFileExists()
+        {
+            return File.Exists(Path.Combine(Directory.GetCurrentDirectory(), DataFileFolder, DataFileName));
         }
         private static float[] GetOilLayerValues()
         {

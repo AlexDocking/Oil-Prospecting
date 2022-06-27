@@ -1,7 +1,7 @@
 ﻿namespace OilProspecting
 {
     /// <summary>
-    /// The object that is serialized/deserialized to store the layer data in
+    /// The object that is serialized/deserialized to a json file
     /// </summary>
     public class OilLayerValues
     {
