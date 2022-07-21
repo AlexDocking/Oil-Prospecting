@@ -6,7 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Oil Prospecting\AutoGen\Blocks\Petroleum.cs" />
     <Compile Remove="Oil Prospecting\Code\Prospecting.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Oil Prospecting\AutoGen\Blocks\Petroleum.cs" />
   </ItemGroup>
 
   <ItemGroup>

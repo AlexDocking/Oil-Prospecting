@@ -83,7 +83,6 @@ namespace OilProspecting
         }
         private static float[] GetOilLayerValues()
         {
-            WorldLayer OilfieldWorldLayer = WorldLayerManager.Obj.GetLayer("Oilfield");
             List<float> values = new List<float>();
 
             //Each value in the oil layer corresponds to a 5x5 voxel chunk
@@ -116,11 +115,10 @@ namespace OilProspecting
         }
         private static void WriteOilLayerValuesToFile()
         {
-            WorldLayer oilLayer = WorldLayerManager.Obj.GetLayer("Oilfield");
             OilLayerValues oilLayerValues = new OilLayerValues();
             oilLayerValues.Values = GetOilLayerValues();
-            oilLayerValues.Width = oilLayer.Width;
-            oilLayerValues.Height = oilLayer.Height;
+            oilLayerValues.Width = OilfieldWorldLayer.Width;
+            oilLayerValues.Height = OilfieldWorldLayer.Height;
             FileManager<OilLayerValues>.WriteTypeHandledToFile(oilLayerValues, DataFileFolder, DataFileName);
         }
     }
