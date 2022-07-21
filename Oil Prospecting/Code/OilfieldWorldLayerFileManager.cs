@@ -11,7 +11,7 @@ using System.IO;
 
 namespace OilProspecting
 {
-    public static class OilMap
+    public static class OilfieldWorldLayerFileManager
     {
         public static WorldLayer OilfieldWorldLayer { get => WorldLayerManager.Obj.GetLayer("Oilfield"); }
         public static readonly string DataFileFolder = "Mods/UserCode/Oil Prospecting";
