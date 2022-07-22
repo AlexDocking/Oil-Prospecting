@@ -1,4 +1,4 @@
-﻿namespace OilProspecting
+﻿namespace BetterOil
 {
     /// <summary>
     /// The object that is serialized/deserialized to a json file

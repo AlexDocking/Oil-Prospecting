@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace OilProspecting
+namespace BetterOil
 {
     public class Commands : IChatCommandHandler
     {

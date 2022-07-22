@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace OilProspecting
+namespace BetterOil
 {
     public static class OilfieldWorldLayerFileManager
     {

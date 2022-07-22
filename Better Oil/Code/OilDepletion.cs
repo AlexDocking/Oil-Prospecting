@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OilProspecting
+namespace BetterOil
 {
     public abstract class OilfieldMapSynchroniser
     {
