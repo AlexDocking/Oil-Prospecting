@@ -29,18 +29,20 @@ namespace OilProspecting
         public double ProductionRateHalfLife { get; set; }
         public Curve Curve { get; internal set; }
         public double[,] Values { get => values; }
-        public int DepletionRadius { get; set; } = 2;
+        public int DepletionRadius { get; set; }
         public OilfieldMapSynchroniser MapSynchroniser { get; internal set; }
 
         public int Width;
         public int Height;
         private readonly double[,] values;
-        public OilfieldMap(int width, int height, double[,] values, Curve curve)
+        public OilfieldMap(double[,] values, Curve curve, int depletionRadius = 1, double productionRateHalfLife = 2000)
         {
-            Width = width;
-            Height = height;
-            this.values = values;
+            this.values = values ?? new double[0, 0];
+            Width = values.GetLength(0);
+            Height = values.GetLength(1);
             Curve = curve;
+            DepletionRadius = depletionRadius;
+            ProductionRateHalfLife = productionRateHalfLife;
         }
         public OilfieldMap(OilfieldMapSynchroniser synchroniser, Curve curve, int depletionRadius, double productionRateHalfLife)
         {
@@ -101,9 +103,7 @@ namespace OilProspecting
         }
         public int BarrelsExtractedDuringTimePeriod(int centreX, int centreY, double seconds, out double elapsedSeconds)
         {
-            OilfieldMap predictionMap = new OilfieldMap(Width, Height, Values.Clone() as double[,], Curve);
-            predictionMap.ProductionRateHalfLife = ProductionRateHalfLife;
-            predictionMap.DepletionRadius = DepletionRadius;
+            OilfieldMap predictionMap = new OilfieldMap(Values.Clone() as double[,], Curve, DepletionRadius, ProductionRateHalfLife);
             elapsedSeconds = 0d;
             int barrelsExtracted = 0;
             while (elapsedSeconds + Curve.TimeGivenOil(predictionMap[centreX, centreY]) <= seconds)

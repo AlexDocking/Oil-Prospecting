@@ -90,7 +90,7 @@ namespace OilProspecting.Tests
         [TestMethod]
         public void TestOilfieldMapGet()
         {
-            OilfieldMap oilfieldMap = new OilfieldMap(3, 3, new double[,] { { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 } }, curve);
+            OilfieldMap oilfieldMap = new OilfieldMap(new double[,] { { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 } }, curve);
             Assert.AreEqual(2, oilfieldMap[0, 1]);
             Assert.AreEqual(6, oilfieldMap[1, 2]);
         }
@@ -100,7 +100,7 @@ namespace OilProspecting.Tests
         [TestMethod]
         public void TestOilfieldMapGetWrapped()
         {
-            OilfieldMap oilfieldMap = new OilfieldMap(3, 3, new double[,] { { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 } }, curve);
+            OilfieldMap oilfieldMap = new OilfieldMap(new double[,] { { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 } }, curve);
             Assert.AreEqual(9, oilfieldMap[-1, 5]);
             Assert.AreEqual(5, oilfieldMap[19, -11]);
         }
@@ -110,7 +110,7 @@ namespace OilProspecting.Tests
         [TestMethod]
         public void TestTotalGaussian()
         {
-            OilfieldMap oilfieldMap = new OilfieldMap(7, 7, new double[,] {
+            OilfieldMap oilfieldMap = new OilfieldMap(new double[,] {
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
@@ -118,7 +118,7 @@ namespace OilProspecting.Tests
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d } },
-                curve);
+                curve, 2, 1);
             (double _, double totalGaussian) = oilfieldMap.GetWeightedOilAmount(3, 3);
             Assert.AreEqual(3.11752580419d, totalGaussian, 0.001d);
         }
@@ -128,7 +128,7 @@ namespace OilProspecting.Tests
         [TestMethod]
         public void TestTotalBarrelsRemaining()
         {
-            OilfieldMap oilfieldMap = new OilfieldMap(2, 2, new double[,] {
+            OilfieldMap oilfieldMap = new OilfieldMap(new double[,] {
                 { 1d, 0.65d },
                 { 0.2d, 0d },
             }, curve);
@@ -141,7 +141,7 @@ namespace OilProspecting.Tests
         [TestMethod]
         public void TestBarrelsExtractedGivenTime()
         {
-            OilfieldMap oilfieldMap = new OilfieldMap(7, 7, new double[,] {
+            OilfieldMap oilfieldMap = new OilfieldMap(new double[,] {
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
@@ -162,7 +162,7 @@ namespace OilProspecting.Tests
         [TestMethod]
         public void TestOriginalMapUnchangedAfterBarrelsExtractedGivenTime()
         {
-            OilfieldMap oilfieldMap = new OilfieldMap(7, 7, new double[,] {
+            OilfieldMap oilfieldMap = new OilfieldMap(new double[,] {
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
@@ -198,7 +198,7 @@ namespace OilProspecting.Tests
         [TestMethod]
         public void TestTotalBarrelsIsCorrectAfterExtraction()
         {
-            OilfieldMap oilfieldMap = new OilfieldMap(7, 7, new double[,] {
+            OilfieldMap oilfieldMap = new OilfieldMap(new double[,] {
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
@@ -206,13 +206,12 @@ namespace OilProspecting.Tests
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d } },
-                curve);
-            oilfieldMap.ProductionRateHalfLife = 1;
+                curve, 2, 1);
             double initialBarrels = oilfieldMap.TotalBarrelsRemaining();
             Console.WriteLine("Initial barrels: " + initialBarrels);
             oilfieldMap.ExtractBarrelsAt(3, 3, 40);
             Print2DArray(oilfieldMap.Values);
-            OilfieldMap newOilfieldMap = new OilfieldMap(7, 7, oilfieldMap.Values, curve);
+            OilfieldMap newOilfieldMap = new OilfieldMap(oilfieldMap.Values, curve);
             newOilfieldMap.ProductionRateHalfLife = 1;
             Console.WriteLine("Remaining barrels: " + newOilfieldMap.TotalBarrelsRemaining());
             Assert.AreEqual(initialBarrels - 40, newOilfieldMap.TotalBarrelsRemaining(), 0.0001d);
@@ -223,7 +222,7 @@ namespace OilProspecting.Tests
         [TestMethod]
         public void TestOilMapUpdatedOnExtraction0Radius()
         {
-            OilfieldMap oilfieldMap = new OilfieldMap(7, 7, new double[,] {
+            OilfieldMap oilfieldMap = new OilfieldMap(new double[,] {
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
@@ -231,9 +230,7 @@ namespace OilProspecting.Tests
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d } },
-                curve);
-            oilfieldMap.ProductionRateHalfLife = 2;
-            oilfieldMap.DepletionRadius = 0;
+                curve, 0, 2);
             oilfieldMap.ExtractBarrelsAt(3, 3, 2);
             double[,] expectedValuesAfterExtraction = new double[,] {
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
@@ -258,7 +255,7 @@ namespace OilProspecting.Tests
         [TestMethod]
         public void TestOilMapUpdatedOnExtraction2Radius()
         {
-            OilfieldMap oilfieldMap = new OilfieldMap(7, 7, new double[,] {
+            OilfieldMap oilfieldMap = new OilfieldMap(new double[,] {
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
@@ -266,8 +263,7 @@ namespace OilProspecting.Tests
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d } },
-                curve);
-            oilfieldMap.ProductionRateHalfLife = 1;
+                curve, 2, 1);
             oilfieldMap.ExtractBarrelsAt(3, 3, 40);
             double[,] expectedValuesAfterExtraction = new double[,] {
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
@@ -330,6 +326,25 @@ namespace OilProspecting.Tests
             Assert.AreEqual(0, oilfieldMap.Height);
             Assert.IsNotNull(oilfieldMap.Values);
             Assert.AreEqual(0, oilfieldMap.Values.Length);
+        }
+        [TestMethod]
+        public void TestConstructorFromData()
+        {
+            double[,] values = new double[,] {
+                { 1d, 1d, 1d },
+                { 1d, 1d, 1d,},
+                { 1d, 1d, 1d },
+                { 1d, 1d, 1d },
+            };
+            OilfieldMap oilfieldMap = new OilfieldMap(values, curve, 3, 1d);
+            Assert.AreEqual(null, oilfieldMap.MapSynchroniser);
+            Assert.AreEqual(curve, oilfieldMap.Curve);
+            Assert.AreEqual(3, oilfieldMap.DepletionRadius);
+            Assert.AreEqual(1d, oilfieldMap.ProductionRateHalfLife);
+            Assert.AreEqual(4, oilfieldMap.Width);
+            Assert.AreEqual(3, oilfieldMap.Height);
+            Assert.IsNotNull(oilfieldMap.Values);
+            Assert.AreEqual(values, oilfieldMap.Values);
         }
         /// <summary>
         /// Test that the oilfield map notifies the synchroniser of the changes to the map after barrels are extracted
