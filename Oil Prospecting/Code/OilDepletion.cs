@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Moq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,12 +7,30 @@ using System.Threading.Tasks;
 
 namespace OilProspecting
 {
+    public abstract class OilfieldMapSynchroniser
+    {
+        public abstract void ValuesChanged(IEnumerable<ValueChange> newValues);
+        public abstract double[,] GetValues();
+    }
+    public class ValueChange
+    {
+        public int X { get; internal set; }
+        public int Y { get; internal set; }
+        public double NewValue { get; internal set; }
+        public ValueChange(int x, int y, double newValue)
+        {
+            X = x;
+            Y = y;
+            NewValue = newValue;
+        }
+    }
     internal class OilfieldMap
     {
         public double ProductionRateHalfLife { get; set; } = 2000;
         public Curve Curve { get; internal set; }
         public double[,] Values { get => values; }
         public int DepletionRadius { get; set; } = 2;
+        public OilfieldMapSynchroniser MapSynchroniser { get; internal set; }
 
         public int Width;
         public int Height;
@@ -23,7 +42,14 @@ namespace OilProspecting
             this.values = values;
             Curve = curve;
         }
-
+        public OilfieldMap(OilfieldMapSynchroniser synchroniser, Curve curve)
+        {
+            this.MapSynchroniser = synchroniser;
+            this.Curve = curve;
+            values = MapSynchroniser.GetValues();
+            Width = values.GetLength(0);
+            Height = values.GetLength(1);
+        }
         public void ExtractBarrelsAt(int centreX, int centreY, double barrels = 1f)
         {
             (double weightedOilTotal, double weightedDistanceTotal) = GetWeightedOilAmount(centreX, centreY);
@@ -31,14 +57,18 @@ namespace OilProspecting
             {
                 return;
             }
+            List<ValueChange> valueChanges = new List<ValueChange>();
             for (int x = centreX - DepletionRadius; x <= centreX + DepletionRadius; x++)
             {
                 for (int y = centreY - DepletionRadius; y <= centreY + DepletionRadius; y++)
                 {
                     double distanceWeight = Gaussian(centreX - x, centreY - y);
-                    this[x, y] = Curve.OilAfterExtraction(this[x, y], barrels * (Curve.BarrelsGivenOil(this[x, y], ProductionRateHalfLife) * distanceWeight) / weightedOilTotal, ProductionRateHalfLife);
+                    double newOilValue = Curve.OilAfterExtraction(this[x, y], barrels * (Curve.BarrelsGivenOil(this[x, y], ProductionRateHalfLife) * distanceWeight) / weightedOilTotal, ProductionRateHalfLife);
+                    valueChanges.Add(new ValueChange(x, y, newOilValue));
+                    this[x, y] = newOilValue;
                 }
             }
+            OnValuesChanged(valueChanges);
         }
         public (double, double) GetWeightedOilAmount(int centreX, int centreY)
         {
@@ -87,6 +117,13 @@ namespace OilProspecting
             double sigma = 1.5d;
             return (1d / (sigma * Math.Sqrt(2 * Math.PI))) * Math.Exp(-0.5d * (Math.Pow(dx, 2) + Math.Pow(dy, 2)) / Math.Pow(sigma, 2));
         }
+        private void OnValuesChanged(IEnumerable<ValueChange> valueChanges)
+        {
+            if (MapSynchroniser != null)
+            {
+                MapSynchroniser.ValuesChanged(valueChanges);
+            }
+        }
         private (int, int) WrapIndex(int x, int y)
         {
             int wrappedX, wrappedY;
@@ -132,7 +169,6 @@ namespace OilProspecting
             }
         }
     }
-
     internal class Curve
     {
         public double MaxTime { get; } = 20 * 60;

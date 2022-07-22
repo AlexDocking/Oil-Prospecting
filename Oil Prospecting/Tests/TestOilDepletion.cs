@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -284,6 +285,64 @@ namespace OilProspecting.Tests
                     Assert.AreEqual(expectedValuesAfterExtraction[x, y], oilfieldMap.Values[x, y], 0.0001d, "Wrong value at " + x + ", " + y);
                 }
             }
+        }
+        /// <summary>
+        /// Test the constructor for ValueChange works
+        /// </summary>
+        [TestMethod]
+        public void TestValueChangeConstructor()
+        {
+            ValueChange valueChange = new ValueChange(2, 3, 0.4d);
+            Assert.AreEqual(2, valueChange.X);
+            Assert.AreEqual(3, valueChange.Y);
+            Assert.AreEqual(0.4d, valueChange.NewValue);
+        }
+        /// <summary>
+        /// Test OilfieldMap constructor reads initial map data from synchroniser object
+        /// </summary>
+        [TestMethod]
+        public void TestConstructorFromSynchroniser()
+        {
+            double[,] values = new double[,] {
+                { 1d, 1d, 1d },
+                { 1d, 1d, 1d,},
+                { 1d, 1d, 1d },
+                { 1d, 1d, 1d },
+            };
+            Mock<OilfieldMapSynchroniser> mockSynchroniser = new Mock<OilfieldMapSynchroniser>();
+            mockSynchroniser.Setup(synchroniser => synchroniser.GetValues()).Returns(values);
+            OilfieldMap oilfieldMap = new OilfieldMap(mockSynchroniser.Object, curve);
+            Assert.AreEqual(values, oilfieldMap.Values);
+            Assert.AreEqual(4, oilfieldMap.Width);
+            Assert.AreEqual(3, oilfieldMap.Height);
+        }
+        /// <summary>
+        /// Test that the oilfield map notifies the synchroniser of the changes to the map after barrels are extracted
+        /// </summary>
+        [TestMethod]
+        public void TestValuesChangedEventIsFired()
+        {
+            double[,] values = new double[,] {
+                { 1d, 1d, 1d },
+                { 1d, 1d, 1d,},
+                { 1d, 1d, 1d },
+                { 1d, 1d, 1d },
+            };
+            Mock<OilfieldMapSynchroniser> mockSynchroniser = new Mock<OilfieldMapSynchroniser>();
+            mockSynchroniser.Setup(synchroniser => synchroniser.GetValues()).Returns(values);
+            OilfieldMap oilfieldMap = new OilfieldMap(mockSynchroniser.Object, curve);
+            oilfieldMap.DepletionRadius = 2;
+            oilfieldMap.ProductionRateHalfLife = 1;
+            /*(OilfieldMap.OilChangedHandler)(OilfieldMap.OilChangedEventArgs args) =>
+                {
+                    Assert.AreEqual(1, args.Changes.Count());
+                    Assert.AreEqual(2, args.Changes.First().X);
+                    Assert.AreEqual(3, args.Changes.First().Y);
+                    Assert.AreEqual(0.947368421053d, args.Changes.First().Value);
+                };*/
+
+            oilfieldMap.ExtractBarrelsAt(2, 3, 1);
+            mockSynchroniser.Verify(synchroniser => synchroniser.ValuesChanged(It.IsAny<IEnumerable<ValueChange>>()), Times.Once());
         }
         /// <summary>
         /// Found somewhere on StackExchange
