@@ -26,7 +26,7 @@ namespace OilProspecting
     }
     internal class OilfieldMap
     {
-        public double ProductionRateHalfLife { get; set; } = 2000;
+        public double ProductionRateHalfLife { get; set; }
         public Curve Curve { get; internal set; }
         public double[,] Values { get => values; }
         public int DepletionRadius { get; set; } = 2;
@@ -42,11 +42,13 @@ namespace OilProspecting
             this.values = values;
             Curve = curve;
         }
-        public OilfieldMap(OilfieldMapSynchroniser synchroniser, Curve curve)
+        public OilfieldMap(OilfieldMapSynchroniser synchroniser, Curve curve, int depletionRadius, double productionRateHalfLife)
         {
             this.MapSynchroniser = synchroniser;
             this.Curve = curve;
-            values = MapSynchroniser.GetValues();
+            DepletionRadius = depletionRadius;
+            ProductionRateHalfLife = productionRateHalfLife;
+            values = MapSynchroniser.GetValues() ?? new double[0, 0];
             Width = values.GetLength(0);
             Height = values.GetLength(1);
         }

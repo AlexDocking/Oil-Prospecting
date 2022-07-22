@@ -311,10 +311,25 @@ namespace OilProspecting.Tests
             };
             Mock<OilfieldMapSynchroniser> mockSynchroniser = new Mock<OilfieldMapSynchroniser>();
             mockSynchroniser.Setup(synchroniser => synchroniser.GetValues()).Returns(values);
-            OilfieldMap oilfieldMap = new OilfieldMap(mockSynchroniser.Object, curve);
-            Assert.AreEqual(values, oilfieldMap.Values);
+            OilfieldMap oilfieldMap = new OilfieldMap(mockSynchroniser.Object, curve, 2, 1d);
+            Assert.AreEqual(curve, oilfieldMap.Curve);
+            Assert.AreEqual(2, oilfieldMap.DepletionRadius);
+            Assert.AreEqual(1d, oilfieldMap.ProductionRateHalfLife);
             Assert.AreEqual(4, oilfieldMap.Width);
             Assert.AreEqual(3, oilfieldMap.Height);
+            Assert.AreEqual(values, oilfieldMap.Values);
+
+            mockSynchroniser = new Mock<OilfieldMapSynchroniser>();
+            mockSynchroniser.Setup(synchroniser => synchroniser.GetValues()).Returns((double[,])null);
+            oilfieldMap = new OilfieldMap(mockSynchroniser.Object, curve, 1, 2.5d);
+            Assert.AreEqual(mockSynchroniser.Object, oilfieldMap.MapSynchroniser);
+            Assert.AreEqual(curve, oilfieldMap.Curve);
+            Assert.AreEqual(1, oilfieldMap.DepletionRadius);
+            Assert.AreEqual(2.5d, oilfieldMap.ProductionRateHalfLife);
+            Assert.AreEqual(0, oilfieldMap.Width);
+            Assert.AreEqual(0, oilfieldMap.Height);
+            Assert.IsNotNull(oilfieldMap.Values);
+            Assert.AreEqual(0, oilfieldMap.Values.Length);
         }
         /// <summary>
         /// Test that the oilfield map notifies the synchroniser of the changes to the map after barrels are extracted
@@ -330,16 +345,7 @@ namespace OilProspecting.Tests
             };
             Mock<OilfieldMapSynchroniser> mockSynchroniser = new Mock<OilfieldMapSynchroniser>();
             mockSynchroniser.Setup(synchroniser => synchroniser.GetValues()).Returns(values);
-            OilfieldMap oilfieldMap = new OilfieldMap(mockSynchroniser.Object, curve);
-            oilfieldMap.DepletionRadius = 2;
-            oilfieldMap.ProductionRateHalfLife = 1;
-            /*(OilfieldMap.OilChangedHandler)(OilfieldMap.OilChangedEventArgs args) =>
-                {
-                    Assert.AreEqual(1, args.Changes.Count());
-                    Assert.AreEqual(2, args.Changes.First().X);
-                    Assert.AreEqual(3, args.Changes.First().Y);
-                    Assert.AreEqual(0.947368421053d, args.Changes.First().Value);
-                };*/
+            OilfieldMap oilfieldMap = new OilfieldMap(mockSynchroniser.Object, curve, 2, 1d);
 
             oilfieldMap.ExtractBarrelsAt(2, 3, 1);
             mockSynchroniser.Verify(synchroniser => synchroniser.ValuesChanged(It.IsAny<IEnumerable<ValueChange>>()), Times.Once());
