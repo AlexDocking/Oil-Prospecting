@@ -2,6 +2,7 @@
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -282,6 +283,54 @@ namespace BetterOil.Tests
                 }
             }
         }
+        [TestMethod]
+        public void TestOilMapUpdatedOnExtraction3Radius()
+        {
+            OilfieldMap oilfieldMap = new OilfieldMap(new double[,] {
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d } },
+                curve, 3, 500);
+            Console.WriteLine(oilfieldMap.BarrelsExtractedDuringTimePeriod(3, 3, 24 * 60 * 60, out _));
+
+            Console.WriteLine(oilfieldMap.BarrelsExtractedDuringTimePeriod(3, 3, 24 * 60 * 60, out _));
+
+            Console.WriteLine(oilfieldMap.BarrelsExtractedDuringTimePeriod(3, 3, 24 * 60 * 60, out _));
+
+            Console.WriteLine(oilfieldMap.BarrelsExtractedDuringTimePeriod(3, 3, 24 * 60 * 60, out _));
+
+            Console.WriteLine(oilfieldMap.BarrelsExtractedDuringTimePeriod(3, 3, 24 * 60 * 60, out _));
+
+            Console.WriteLine(oilfieldMap.BarrelsExtractedDuringTimePeriod(3, 3, 24 * 60 * 60, out _));
+            Print2DArray(oilfieldMap.Values);
+        }
+        public void TestRealData()
+        {
+            OilLayerValues oilLayerValues = System.Text.Json.JsonSerializer.Deserialize<OilLayerValues>(System.IO.File.ReadAllText(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Oil Layer Values.json")));
+            OilfieldMap oilfieldMap = new OilfieldMap(new OilLayerValuesSynchroniser(oilLayerValues), curve, 6, 100);
+            oilfieldMap.Sigma = 3;
+            var image = new Bitmap(25, 25);// oilLayerValues.Width, oilLayerValues.Height);
+            int offsetX = 119;
+            int offsetY = 106;
+            int imageWidth = 25;
+            int imageHeight = 25;
+            int pumpX = offsetX + 14;
+            int pumpY = offsetY + 9;
+            double max = oilfieldMap.Curve.RateGivenOil(oilfieldMap[pumpX, pumpY]);
+
+            int barrels = 250;
+            int cumulativeBarrels = 0;
+            int frames = 25;
+            OilmapImageHelper.ImageAfterBarrels(image, oilfieldMap, offsetX, offsetY, imageWidth, imageHeight, pumpX, pumpY, max, 0, ref cumulativeBarrels);
+            for (int i = 0; i < frames; i++)
+            {
+                OilmapImageHelper.ImageAfterBarrels(image, oilfieldMap, offsetX, offsetY, imageWidth, imageHeight, pumpX, pumpY, max, barrels, ref cumulativeBarrels);
+            }
+        }
         /// <summary>
         /// Test the constructor for ValueChange works
         /// </summary>
@@ -379,6 +428,28 @@ namespace BetterOil.Tests
                     Console.Write(matrix[i, j] + "\t");
                 }
                 Console.WriteLine();
+            }
+        }
+        private static class OilmapImageHelper
+        {
+            public static System.Func<double, Color> PixelColour = (double oil) => Color.FromArgb((int)(oil * 255), (int)(oil * 255), (int)(oil * 255));
+
+            public static void ImageAfterBarrels(Bitmap image, OilfieldMap oilfieldMap, int left, int bottom, int width, int height, int pumpX, int pumpY, double max, int barrelsToExtract, ref int cumulativeBarrels)
+            {
+                for (int barrels = 0; barrels < barrelsToExtract; barrels++)
+                {
+                    oilfieldMap.ExtractBarrelsAt(pumpX, pumpY);
+                }
+                for (int x = 0; x < width; x++)
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                        double rate = oilfieldMap.Curve.RateGivenOil(oilfieldMap[x + left, y + bottom]);
+                        image.SetPixel(x, y, PixelColour(rate / max));
+                    }
+                }
+                cumulativeBarrels += barrelsToExtract;
+                image.Save(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Oil Heatmap After " + (cumulativeBarrels) + " Barrels.png"), System.Drawing.Imaging.ImageFormat.Png);
             }
         }
     }

@@ -12,6 +12,31 @@ namespace BetterOil
         public abstract void ValuesChanged(IEnumerable<ValueChange> newValues);
         public abstract double[,] GetValues();
     }
+    public class OilLayerValuesSynchroniser : OilfieldMapSynchroniser
+    {
+        public OilLayerValues Data { get; }
+        public OilLayerValuesSynchroniser(OilLayerValues data)
+        {
+            Data = data;
+        }
+
+        public override double[,] GetValues()
+        {
+            double[,] values = new double[Data.Width, Data.Height];
+            for (int x = 0; x < Data.Width; x++)
+            {
+                for (int y = 0; y < Data.Height; y++)
+                {
+                    values[x, y] = Data[x, y];
+                }
+            }
+            return values;
+        }
+
+        public override void ValuesChanged(IEnumerable<ValueChange> newValues)
+        {
+        }
+    }
     public class ValueChange
     {
         public int X { get; internal set; }
@@ -31,6 +56,7 @@ namespace BetterOil
         public double[,] Values { get => values; }
         public int DepletionRadius { get; set; }
         public OilfieldMapSynchroniser MapSynchroniser { get; internal set; }
+        public double Sigma { get; internal set; } = 1.5d;
 
         public int Width;
         public int Height;
@@ -66,10 +92,15 @@ namespace BetterOil
             {
                 for (int y = centreY - DepletionRadius; y <= centreY + DepletionRadius; y++)
                 {
-                    double distanceWeight = Gaussian(centreX - x, centreY - y);
-                    double newOilValue = Curve.OilAfterExtraction(this[x, y], barrels * (Curve.BarrelsGivenOil(this[x, y], ProductionRateHalfLife) * distanceWeight) / weightedOilTotal, ProductionRateHalfLife);
-                    valueChanges.Add(new ValueChange(x, y, newOilValue));
-                    this[x, y] = newOilValue;
+                    int dx = centreX - x;
+                    int dy = centreY - y;
+                    if (Distance(dx, dy) <= DepletionRadius)
+                    {
+                        double distanceWeight = Gaussian(dx, dy);
+                        double newOilValue = Curve.OilAfterExtraction(this[x, y], barrels * (Curve.BarrelsGivenOil(this[x, y], ProductionRateHalfLife) * distanceWeight) / weightedOilTotal, ProductionRateHalfLife);
+                        valueChanges.Add(new ValueChange(x, y, newOilValue));
+                        this[x, y] = newOilValue;
+                    }
                 }
             }
             OnValuesChanged(valueChanges);
@@ -82,9 +113,14 @@ namespace BetterOil
             {
                 for (int y = centreY - DepletionRadius; y <= centreY + DepletionRadius; y++)
                 {
-                    double distanceWeight = Gaussian(centreX - x, centreY - y);
-                    amount += Curve.BarrelsGivenOil(this[x, y], ProductionRateHalfLife) * distanceWeight;
-                    totalGaussian += distanceWeight;
+                    int dx = centreX - x;
+                    int dy = centreY - y;
+                    if (Distance(dx, dy) <= DepletionRadius)
+                    {
+                        double distanceWeight = Gaussian(dx, dy);
+                        amount += Curve.BarrelsGivenOil(this[x, y], ProductionRateHalfLife) * distanceWeight;
+                        totalGaussian += distanceWeight;
+                    }
                 }
             }
             return (amount, totalGaussian);
@@ -114,10 +150,13 @@ namespace BetterOil
             }
             return barrelsExtracted;
         }
+        private double Distance(int dx, int dy)
+        {
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
         private double Gaussian(double dx, double dy)
         {
-            double sigma = 1.5d;
-            return (1d / (sigma * Math.Sqrt(2 * Math.PI))) * Math.Exp(-0.5d * (Math.Pow(dx, 2) + Math.Pow(dy, 2)) / Math.Pow(sigma, 2));
+            return (1d / (Sigma * Math.Sqrt(2 * Math.PI))) * Math.Exp(-0.5d * (Math.Pow(dx, 2) + Math.Pow(dy, 2)) / Math.Pow(Sigma, 2));
         }
         private void OnValuesChanged(IEnumerable<ValueChange> valueChanges)
         {

@@ -7,12 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Oil Prospecting\AutoGen\Blocks\Petroleum.cs" />
-    <Compile Remove="Oil Prospecting\Code\Prospecting.cs" />
+    <Compile Remove="Oil Prospecting\**" />
+    <EmbeddedResource Remove="Oil Prospecting\**" />
+    <None Remove="Oil Prospecting\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Oil Prospecting\AutoGen\Blocks\Petroleum.cs" />
+    <Compile Remove="Better Oil\AutoGen\Blocks\Petroleum.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Better Oil\AutoGen\Blocks\Petroleum.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +25,7 @@
     <PackageReference Include="Moq" Version="4.18.1" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

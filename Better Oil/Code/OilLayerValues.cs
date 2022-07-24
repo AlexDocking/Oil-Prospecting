@@ -8,5 +8,12 @@
         public int Height { get; set; }
         public int Width { get; set; }
         public float[] Values { get; set; }
+        public float this[int x, int y]
+        {
+            get
+            {
+                return Values[x * Height + y];
+            }
+        }
     }
 }
