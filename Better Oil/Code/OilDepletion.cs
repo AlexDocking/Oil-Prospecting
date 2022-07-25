@@ -1,54 +1,8 @@
-﻿using Moq;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BetterOil
 {
-    public abstract class OilfieldMapSynchroniser
-    {
-        public abstract void ValuesChanged(IEnumerable<ValueChange> newValues);
-        public abstract double[,] GetValues();
-    }
-    public class OilLayerValuesSynchroniser : OilfieldMapSynchroniser
-    {
-        public OilLayerValues Data { get; }
-        public OilLayerValuesSynchroniser(OilLayerValues data)
-        {
-            Data = data;
-        }
-
-        public override double[,] GetValues()
-        {
-            double[,] values = new double[Data.Width, Data.Height];
-            for (int x = 0; x < Data.Width; x++)
-            {
-                for (int y = 0; y < Data.Height; y++)
-                {
-                    values[x, y] = Data[x, y];
-                }
-            }
-            return values;
-        }
-
-        public override void ValuesChanged(IEnumerable<ValueChange> newValues)
-        {
-        }
-    }
-    public class ValueChange
-    {
-        public int X { get; internal set; }
-        public int Y { get; internal set; }
-        public double NewValue { get; internal set; }
-        public ValueChange(int x, int y, double newValue)
-        {
-            X = x;
-            Y = y;
-            NewValue = newValue;
-        }
-    }
     internal class OilfieldMap
     {
         public double ProductionRateHalfLife { get; set; }
