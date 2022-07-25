@@ -2,10 +2,10 @@
 
 namespace BetterOil
 {
-    public class OilLayerValuesSynchroniser : OilfieldMapSynchroniser
+    public class OilLayerValuesGetter : OilfieldMapGetter
     {
         public OilLayerValues Data { get; }
-        public OilLayerValuesSynchroniser(OilLayerValues data)
+        public OilLayerValuesGetter(OilLayerValues data)
         {
             Data = data;
         }
@@ -21,10 +21,6 @@ namespace BetterOil
                 }
             }
             return values;
-        }
-
-        public override void ValuesChanged(IEnumerable<ValueChange> newValues)
-        {
         }
     }
 }

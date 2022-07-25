@@ -9,7 +9,7 @@ namespace BetterOil
         public Curve Curve { get; internal set; }
         public double[,] Values { get => values; }
         public int DepletionRadius { get; set; }
-        public OilfieldMapSynchroniser MapSynchroniser { get; internal set; }
+        public OilfieldMapSetter MapSynchroniser { get; internal set; }
         public double Sigma { get; internal set; } = 1.5d;
 
         public int Width;
@@ -24,13 +24,13 @@ namespace BetterOil
             DepletionRadius = depletionRadius;
             ProductionRateHalfLife = productionRateHalfLife;
         }
-        public OilfieldMap(OilfieldMapSynchroniser synchroniser, Curve curve, int depletionRadius, double productionRateHalfLife)
+        public OilfieldMap(OilfieldMapGetter initialDataGetter, OilfieldMapSetter synchroniser, Curve curve, int depletionRadius, double productionRateHalfLife)
         {
             this.MapSynchroniser = synchroniser;
             this.Curve = curve;
             DepletionRadius = depletionRadius;
             ProductionRateHalfLife = productionRateHalfLife;
-            values = MapSynchroniser.GetValues() ?? new double[0, 0];
+            values = initialDataGetter.GetValues() ?? new double[0, 0];
             Width = values.GetLength(0);
             Height = values.GetLength(1);
         }
@@ -116,7 +116,7 @@ namespace BetterOil
         {
             if (MapSynchroniser != null)
             {
-                MapSynchroniser.ValuesChanged(valueChanges);
+                MapSynchroniser.UpdateValues(valueChanges);
             }
         }
         private (int, int) WrapIndex(int x, int y)

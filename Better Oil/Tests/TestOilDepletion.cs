@@ -311,7 +311,7 @@ namespace BetterOil.Tests
         public void TestRealData()
         {
             OilLayerValues oilLayerValues = System.Text.Json.JsonSerializer.Deserialize<OilLayerValues>(System.IO.File.ReadAllText(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Oil Layer Values.json")));
-            OilfieldMap oilfieldMap = new OilfieldMap(new OilLayerValuesSynchroniser(oilLayerValues), curve, 6, 100);
+            OilfieldMap oilfieldMap = new OilfieldMap(new OilLayerValuesGetter(oilLayerValues), null, curve, 6, 100);
             oilfieldMap.Sigma = 3;
             var image = new Bitmap(25, 25);// oilLayerValues.Width, oilLayerValues.Height);
             int offsetX = 119;
@@ -354,9 +354,10 @@ namespace BetterOil.Tests
                 { 1d, 1d, 1d },
                 { 1d, 1d, 1d },
             };
-            Mock<OilfieldMapSynchroniser> mockSynchroniser = new Mock<OilfieldMapSynchroniser>();
-            mockSynchroniser.Setup(synchroniser => synchroniser.GetValues()).Returns(values);
-            OilfieldMap oilfieldMap = new OilfieldMap(mockSynchroniser.Object, curve, 2, 1d);
+            Mock<OilfieldMapGetter> mockGetter = new Mock<OilfieldMapGetter>();
+            mockGetter.Setup(getter => getter.GetValues()).Returns(values);
+            Mock<OilfieldMapSetter> mockSynchroniser = new Mock<OilfieldMapSetter>();
+            OilfieldMap oilfieldMap = new OilfieldMap(mockGetter.Object, mockSynchroniser.Object, curve, 2, 1d);
             Assert.AreEqual(curve, oilfieldMap.Curve);
             Assert.AreEqual(2, oilfieldMap.DepletionRadius);
             Assert.AreEqual(1d, oilfieldMap.ProductionRateHalfLife);
@@ -364,9 +365,9 @@ namespace BetterOil.Tests
             Assert.AreEqual(3, oilfieldMap.Height);
             Assert.AreEqual(values, oilfieldMap.Values);
 
-            mockSynchroniser = new Mock<OilfieldMapSynchroniser>();
-            mockSynchroniser.Setup(synchroniser => synchroniser.GetValues()).Returns((double[,])null);
-            oilfieldMap = new OilfieldMap(mockSynchroniser.Object, curve, 1, 2.5d);
+            mockGetter = new Mock<OilfieldMapGetter>();
+            mockGetter.Setup(getter => getter.GetValues()).Returns((double[,])null);
+            oilfieldMap = new OilfieldMap(mockGetter.Object, mockSynchroniser.Object, curve, 1, 2.5d);
             Assert.AreEqual(mockSynchroniser.Object, oilfieldMap.MapSynchroniser);
             Assert.AreEqual(curve, oilfieldMap.Curve);
             Assert.AreEqual(1, oilfieldMap.DepletionRadius);
@@ -407,12 +408,14 @@ namespace BetterOil.Tests
                 { 1d, 1d, 1d },
                 { 1d, 1d, 1d },
             };
-            Mock<OilfieldMapSynchroniser> mockSynchroniser = new Mock<OilfieldMapSynchroniser>();
-            mockSynchroniser.Setup(synchroniser => synchroniser.GetValues()).Returns(values);
-            OilfieldMap oilfieldMap = new OilfieldMap(mockSynchroniser.Object, curve, 2, 1d);
+            Mock<OilfieldMapGetter> mockGetter = new Mock<OilfieldMapGetter>();
+            mockGetter.Setup(getter => getter.GetValues()).Returns(values);
+
+            Mock<OilfieldMapSetter> mockSynchroniser = new Mock<OilfieldMapSetter>();
+            OilfieldMap oilfieldMap = new OilfieldMap(mockGetter.Object, mockSynchroniser.Object, curve, 2, 1d);
 
             oilfieldMap.ExtractBarrelsAt(2, 3, 1);
-            mockSynchroniser.Verify(synchroniser => synchroniser.ValuesChanged(It.IsAny<IEnumerable<ValueChange>>()), Times.Once());
+            mockSynchroniser.Verify(synchroniser => synchroniser.UpdateValues(It.IsAny<IEnumerable<ValueChange>>()), Times.Once());
         }
         /// <summary>
         /// Found somewhere on StackExchange
