@@ -121,7 +121,7 @@ namespace BetterOil.Tests
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d } },
                 curve, 2, 1);
             (double _, double totalGaussian) = oilfieldMap.GetWeightedOilAmount(3, 3);
-            Assert.AreEqual(3.11752580419d, totalGaussian, 0.001d);
+            Assert.AreEqual(2.93772165094d, totalGaussian, 0.001d);
         }
         /// <summary>
         /// Test that the maximum number of barrels that can be extracted before the whole map has zero oil is right
@@ -268,11 +268,11 @@ namespace BetterOil.Tests
             oilfieldMap.ExtractBarrelsAt(3, 3, 40);
             double[,] expectedValuesAfterExtraction = new double[,] {
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
-                { 1d, 0.974132190709d, 0.937971632073d, 0.913455756022d, 0.937971632073d, 0.974132190709d, 1d },
-                { 1d, 0.937971632073d, 0.812802114442d, 0.702840786835d, 0.812802114442d, 0.937971632073d, 1d },
-                { 1d, 0.913455756022d, 0.702840786835d, 0.49222659397d, 0.702840786835d, 0.913455756022d, 1d },
-                { 1d, 0.937971632073d, 0.812802114442d, 0.702840786835d, 0.812802114442d, 0.937971632073d, 1d },
-                { 1d, 0.974132190709d, 0.937971632073d, 0.913455756022d, 0.937971632073d, 0.974132190709d, 1d },
+                { 1d, 1d, 0.93237488804d, 0.904920910456d, 0.93237488804d, 1d, 1d },
+                { 1d, 0.93237488804d, 0.789474056844d, 0.659847812397d, 0.789474056844d, 0.93237488804d, 1d },
+                { 1d, 0.904920910456d, 0.659847812397d, 0.404929213959d, 0.659847812397d, 0.904920910456d, 1d },
+                { 1d, 0.93237488804d, 0.789474056844d, 0.659847812397d, 0.789474056844d, 0.93237488804d, 1d },
+                { 1d, 1d, 0.93237488804d, 0.904920910456d, 0.93237488804d, 1d, 1d },
                 { 1d, 1d, 1d, 1d, 1d, 1d, 1d }
             };
             for (int x = 0; x < 7; x++)

@@ -94,7 +94,7 @@ namespace BetterOil
                 {
                     int dx = centreX - x;
                     int dy = centreY - y;
-                    if (Distance(dx, dy) <= DepletionRadius)
+                    if (Distance(dx, dy) <= DepletionRadius + 0.5d)
                     {
                         double distanceWeight = Gaussian(dx, dy);
                         double newOilValue = Curve.OilAfterExtraction(this[x, y], barrels * (Curve.BarrelsGivenOil(this[x, y], ProductionRateHalfLife) * distanceWeight) / weightedOilTotal, ProductionRateHalfLife);
@@ -115,7 +115,7 @@ namespace BetterOil
                 {
                     int dx = centreX - x;
                     int dy = centreY - y;
-                    if (Distance(dx, dy) <= DepletionRadius)
+                    if (Distance(dx, dy) <= DepletionRadius + 0.5d)
                     {
                         double distanceWeight = Gaussian(dx, dy);
                         amount += Curve.BarrelsGivenOil(this[x, y], ProductionRateHalfLife) * distanceWeight;
