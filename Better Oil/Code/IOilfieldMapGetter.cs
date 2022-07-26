@@ -1,6 +1,6 @@
 ﻿namespace BetterOil
 {
-    public abstract class OilfieldMapGetter
+    public interface IOilfieldMapGetter
     {
         public abstract double[,] GetValues();
     }

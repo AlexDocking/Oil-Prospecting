@@ -354,9 +354,9 @@ namespace BetterOil.Tests
                 { 1d, 1d, 1d },
                 { 1d, 1d, 1d },
             };
-            Mock<OilfieldMapGetter> mockGetter = new Mock<OilfieldMapGetter>();
+            Mock<IOilfieldMapGetter> mockGetter = new Mock<IOilfieldMapGetter>();
             mockGetter.Setup(getter => getter.GetValues()).Returns(values);
-            Mock<OilfieldMapSetter> mockSynchroniser = new Mock<OilfieldMapSetter>();
+            Mock<IOilfieldMapSetter> mockSynchroniser = new Mock<IOilfieldMapSetter>();
             OilfieldMap oilfieldMap = new OilfieldMap(mockGetter.Object, mockSynchroniser.Object, curve, 2, 1d);
             Assert.AreEqual(curve, oilfieldMap.Curve);
             Assert.AreEqual(2, oilfieldMap.DepletionRadius);
@@ -365,7 +365,7 @@ namespace BetterOil.Tests
             Assert.AreEqual(3, oilfieldMap.Height);
             Assert.AreEqual(values, oilfieldMap.Values);
 
-            mockGetter = new Mock<OilfieldMapGetter>();
+            mockGetter = new Mock<IOilfieldMapGetter>();
             mockGetter.Setup(getter => getter.GetValues()).Returns((double[,])null);
             oilfieldMap = new OilfieldMap(mockGetter.Object, mockSynchroniser.Object, curve, 1, 2.5d);
             Assert.AreEqual(mockSynchroniser.Object, oilfieldMap.MapSynchroniser);
@@ -408,10 +408,10 @@ namespace BetterOil.Tests
                 { 1d, 1d, 1d },
                 { 1d, 1d, 1d },
             };
-            Mock<OilfieldMapGetter> mockGetter = new Mock<OilfieldMapGetter>();
+            Mock<IOilfieldMapGetter> mockGetter = new Mock<IOilfieldMapGetter>();
             mockGetter.Setup(getter => getter.GetValues()).Returns(values);
 
-            Mock<OilfieldMapSetter> mockSynchroniser = new Mock<OilfieldMapSetter>();
+            Mock<IOilfieldMapSetter> mockSynchroniser = new Mock<IOilfieldMapSetter>();
             OilfieldMap oilfieldMap = new OilfieldMap(mockGetter.Object, mockSynchroniser.Object, curve, 2, 1d);
 
             oilfieldMap.ExtractBarrelsAt(2, 3, 1);

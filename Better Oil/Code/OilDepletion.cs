@@ -9,7 +9,7 @@ namespace BetterOil
         public Curve Curve { get; internal set; }
         public double[,] Values { get => values; }
         public int DepletionRadius { get; set; }
-        public OilfieldMapSetter MapSynchroniser { get; internal set; }
+        public IOilfieldMapSetter MapSynchroniser { get; internal set; }
         public double Sigma { get; internal set; } = 1.5d;
 
         public int Width;
@@ -24,7 +24,7 @@ namespace BetterOil
             DepletionRadius = depletionRadius;
             ProductionRateHalfLife = productionRateHalfLife;
         }
-        public OilfieldMap(OilfieldMapGetter initialDataGetter, OilfieldMapSetter synchroniser, Curve curve, int depletionRadius, double productionRateHalfLife)
+        public OilfieldMap(IOilfieldMapGetter initialDataGetter, IOilfieldMapSetter synchroniser, Curve curve, int depletionRadius, double productionRateHalfLife)
         {
             this.MapSynchroniser = synchroniser;
             this.Curve = curve;

@@ -2,7 +2,7 @@
 
 namespace BetterOil
 {
-    public class OilLayerValuesGetter : OilfieldMapGetter
+    public class OilLayerValuesGetter : IOilfieldMapGetter
     {
         public OilLayerValues Data { get; }
         public OilLayerValuesGetter(OilLayerValues data)
@@ -10,7 +10,7 @@ namespace BetterOil
             Data = data;
         }
 
-        public override double[,] GetValues()
+        public double[,] GetValues()
         {
             double[,] values = new double[Data.Width, Data.Height];
             for (int x = 0; x < Data.Width; x++)
