@@ -157,6 +157,46 @@ namespace BetterOil.Tests
             Assert.AreEqual(3, barrelsExtracted);
             Assert.AreEqual(420, elapsedSeconds, 0.0001d);
         }
+        [TestMethod]
+        public void TestBarrelsExtractedGivenTimeDifferentSigmaAndRadius()
+        {
+            OilfieldMap oilfieldMap = new OilfieldMap(new double[,] {
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 0.5d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d } },
+                curve);
+            oilfieldMap.ProductionRateHalfLife = 0.25d;
+            oilfieldMap.DepletionRadius = 1;
+            oilfieldMap.Sigma = 2d;
+            int barrelsExtracted = oilfieldMap.BarrelsExtractedDuringTimePeriod(3, 3, 3757, out double elapsedSeconds);
+            Assert.AreEqual(4, barrelsExtracted);
+            Assert.AreEqual(2877.54861235d, elapsedSeconds, 0.0001d);
+
+            for (int i = 0; i < 4; i++)
+            {
+                oilfieldMap.ExtractBarrelsAt(3, 3, 1);
+            }
+            double[,] expectedValuesAfterExtraction = new double[,] {
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 0.86368035496d, 0.836848384455d, 0.86368035496d, 1d, 1d },
+                { 1d, 1d, 0.836848384455d, 0.280986643248d, 0.836848384455d, 1d, 1d },
+                { 1d, 1d, 0.86368035496d, 0.836848384455d, 0.86368035496d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d },
+                { 1d, 1d, 1d, 1d, 1d, 1d, 1d }
+            };
+            for (int x = 0; x < 7; x++)
+            {
+                for (int y = 0; y < 7; y++)
+                {
+                    Assert.AreEqual(expectedValuesAfterExtraction[x, y], oilfieldMap.Values[x, y], 0.0001d, "Wrong value at " + x + ", " + y);
+                }
+            }
+        }
         /// <summary>
         /// Make sure that the oil map doesn't get changed during its simulation of future extractions
         /// </summary>
@@ -313,7 +353,7 @@ namespace BetterOil.Tests
             OilLayerValues oilLayerValues = System.Text.Json.JsonSerializer.Deserialize<OilLayerValues>(System.IO.File.ReadAllText(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Oil Layer Values.json")));
             OilfieldMap oilfieldMap = new OilfieldMap(new OilLayerValuesGetter(oilLayerValues), null, curve, 6, 100);
             oilfieldMap.Sigma = 3;
-            var image = new Bitmap(25, 25);// oilLayerValues.Width, oilLayerValues.Height);
+            var image = new Bitmap(25, 25);
             int offsetX = 119;
             int offsetY = 106;
             int imageWidth = 25;
@@ -321,14 +361,14 @@ namespace BetterOil.Tests
             int pumpX = offsetX + 14;
             int pumpY = offsetY + 9;
             double max = oilfieldMap.Curve.RateGivenOil(oilfieldMap[pumpX, pumpY]);
-
-            int barrels = 250;
             int cumulativeBarrels = 0;
             int frames = 25;
-            OilmapImageHelper.ImageAfterBarrels(image, oilfieldMap, offsetX, offsetY, imageWidth, imageHeight, pumpX, pumpY, max, 0, ref cumulativeBarrels);
+            List<double> cumulativeTime = new List<double>();
+            OilmapImageHelper.ImageAfterBarrels(image, oilfieldMap, offsetX, offsetY, imageWidth, imageHeight, pumpX, pumpY, max, 0, ref cumulativeBarrels, ref cumulativeTime);
             for (int i = 0; i < frames; i++)
             {
-                OilmapImageHelper.ImageAfterBarrels(image, oilfieldMap, offsetX, offsetY, imageWidth, imageHeight, pumpX, pumpY, max, barrels, ref cumulativeBarrels);
+                int barrels = 1 + oilfieldMap.BarrelsExtractedDuringTimePeriod(pumpX, pumpY, (TimeSpan.FromDays(i + 1) - TimeSpan.FromSeconds(cumulativeTime.LastOrDefault())).TotalSeconds, out double elapsedSeconds);
+                OilmapImageHelper.ImageAfterBarrels(image, oilfieldMap, offsetX, offsetY, imageWidth, imageHeight, pumpX, pumpY, max, barrels, ref cumulativeBarrels, ref cumulativeTime);
             }
         }
         /// <summary>
@@ -437,10 +477,11 @@ namespace BetterOil.Tests
         {
             public static System.Func<double, Color> PixelColour = (double oil) => Color.FromArgb((int)(oil * 255), (int)(oil * 255), (int)(oil * 255));
 
-            public static void ImageAfterBarrels(Bitmap image, OilfieldMap oilfieldMap, int left, int bottom, int width, int height, int pumpX, int pumpY, double max, int barrelsToExtract, ref int cumulativeBarrels)
+            public static void ImageAfterBarrels(Bitmap image, OilfieldMap oilfieldMap, int left, int bottom, int width, int height, int pumpX, int pumpY, double max, int barrelsToExtract, ref int cumulativeBarrels, ref List<double> cumulativeTime)
             {
                 for (int barrels = 0; barrels < barrelsToExtract; barrels++)
                 {
+                    cumulativeTime.Add(cumulativeTime.LastOrDefault() + oilfieldMap.Curve.TimeGivenOil(oilfieldMap[pumpX, pumpY]));
                     oilfieldMap.ExtractBarrelsAt(pumpX, pumpY);
                 }
                 for (int x = 0; x < width; x++)
@@ -452,7 +493,7 @@ namespace BetterOil.Tests
                     }
                 }
                 cumulativeBarrels += barrelsToExtract;
-                image.Save(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Oil Heatmap After " + (cumulativeBarrels) + " Barrels.png"), System.Drawing.Imaging.ImageFormat.Png);
+                image.Save(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Oil Heatmap " + TimeSpan.FromSeconds(cumulativeTime.LastOrDefault()).ToString(@"\Ddd\ \Hhh") + " After " + cumulativeBarrels + " Barrels.png"), System.Drawing.Imaging.ImageFormat.Png);
             }
         }
     }

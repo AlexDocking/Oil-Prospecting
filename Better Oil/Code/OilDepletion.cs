@@ -94,13 +94,16 @@ namespace BetterOil
         public int BarrelsExtractedDuringTimePeriod(int centreX, int centreY, double seconds, out double elapsedSeconds)
         {
             OilfieldMap predictionMap = new OilfieldMap(Values.Clone() as double[,], Curve, DepletionRadius, ProductionRateHalfLife);
+            predictionMap.Sigma = Sigma;
             elapsedSeconds = 0d;
             int barrelsExtracted = 0;
-            while (elapsedSeconds + Curve.TimeGivenOil(predictionMap[centreX, centreY]) <= seconds)
+            double nextBarrelTime = Curve.TimeGivenOil(predictionMap[centreX, centreY]);
+            while (elapsedSeconds + nextBarrelTime <= seconds)
             {
-                elapsedSeconds += Curve.TimeGivenOil(predictionMap[centreX, centreY]);
+                elapsedSeconds += nextBarrelTime;
                 predictionMap.ExtractBarrelsAt(centreX, centreY, 1);
                 barrelsExtracted += 1;
+                nextBarrelTime = Curve.TimeGivenOil(predictionMap[centreX, centreY]);
             }
             return barrelsExtracted;
         }
